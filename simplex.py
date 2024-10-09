@@ -51,14 +51,17 @@ def separate_terms(equation: str) -> list[str]:
 
 
 def convert_term_to_integer(term: str) -> int:
+    # For positive x and y (1)
     if "x" in term:
-        term = term.replace("x", "")
+        term = term.replace("x", "1")
     elif "y" in term:
-        term = term.replace("y", "")
+        term = term.replace("y", "1")
 
-    # If the term was only x or y, it should be 1
-    if term == "":
-        term = "1"
+    # For negative x and y (-1)
+    if "-x" in term:
+        term = term.replace("-x", "-1")
+    elif "-y" in term:
+        term = term.replace("-y", "-1")
 
     return int(term)
 
@@ -242,6 +245,7 @@ def perform_pivot_elimination(matrix: list, pivot_row_index: int, pivot_column_i
                 pivot_row_num = new_matrix[pivot_row_index][i]
                 new_matrix[row][i] = n - (pivot_row_num * row_pivot)
 
+    convert_fractions_to_integer(new_matrix)
     return new_matrix
 
 
@@ -258,15 +262,21 @@ def convert_fractions_to_integer(matrix: list) -> list[list[int]]:
 
 
 def main():
+    """
     # Let user input the objective function, how many constraints, and the constraints itself
     objective_function = get_objective_function()
     constraints = get_constraints()
+    """
 
     """
-    # Testing
+    # Testing, has optimal solution (bounded)
     objective_function = "z = 120x + 100y"
     constraints = ["2x + 2y <= 8", "5x + 3y <= 15"]
     """
+
+    # Testing, has no finite optimal solution (unbounded)
+    objective_function = "z = x + y"
+    constraints = ["x - y <= 2", "-x + y <= 1"]
 
     # Formulate the LP model
     print("\nLP Model:")
@@ -288,13 +298,19 @@ def main():
     matrix = initial_table(objective_function_terms, constraints_terms)
     print_table(matrix)
 
-    # TODO: Stop if no positive numbers when determining pivot row (after getting the pivot column)
     step = 1
     while objective_row_negative_exists(matrix):
+        # Stop when there are no more negative numbers on the objective function (x and y)
         pivot_column_index = determine_pivot_column(matrix)
-        pivot_row_index = determine_pivot_row(matrix, pivot_column_index)
+
+        # Stop when there are no more positive numbers on the pivot column (there is no finite solution)
+        if pivot_column_positive_exists(matrix, pivot_column_index):
+            pivot_row_index = determine_pivot_row(matrix, pivot_column_index)
+        else:
+            print("\nThere is no finite optimal solution. Stopping.")
+            print_table(matrix)
+            break
         matrix = perform_pivot_elimination(matrix, pivot_row_index, pivot_column_index)
-        matrix = convert_fractions_to_integer(matrix)
 
         print(f"\nStep {step}:")
         print_table(matrix)
