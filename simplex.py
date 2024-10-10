@@ -53,15 +53,20 @@ def separate_terms(equation: str) -> list[str]:
 def convert_term_to_integer(term: str) -> int:
     # For positive x and y (1)
     if "x" in term:
-        term = term.replace("x", "1")
+        term = term.replace("x", "")
     elif "y" in term:
-        term = term.replace("y", "1")
+        term = term.replace("y", "")
 
     # For negative x and y (-1)
     if "-x" in term:
-        term = term.replace("-x", "-1")
+        term = term.replace("-x", "-")
     elif "-y" in term:
-        term = term.replace("-y", "-1")
+        term = term.replace("-y", "-")
+
+    if term == "":
+        term = "1"
+    elif term == "-":
+        term = "-1"
 
     return int(term)
 
@@ -88,9 +93,8 @@ def formulate_LP_model(objective_function: str, constraints: list):
     print("  x, y >= 0\n")
 
 
-def print_table(matrix):
+def print_table(matrix_labeled):
     table = PrettyTable()
-    matrix_labeled = add_labels(matrix)
 
     # Set up table
     table.field_names = matrix_labeled[0]
@@ -105,7 +109,7 @@ def print_table(matrix):
 
 # Add the first row identifying what column, and the first row indexes identifying what basic variable
 # For the prettytable function
-def add_labels(matrix) -> list:
+def add_labels(matrix, basic_variables) -> list:
     matrix_labeled = copy.deepcopy(matrix)
     constraints_num = len(matrix) - 1 # Get number of constraints by getting length - 1 (z)
 
@@ -113,18 +117,14 @@ def add_labels(matrix) -> list:
     first_row = ["B.V", "x", "y"]
     for i in range(constraints_num):
         first_row.append(f"S{i+1}")
-    else:
-        first_row.append("RHS")
+    first_row.append("RHS")
 
     # Add corresponding basic variable in each column
-    # TODO: Use global boolean variables to check whether the x or y column is solved, update accordingly in the table if so
-    n = 1
     for i, row in enumerate(matrix_labeled):
         if i == len(matrix_labeled) - 1: # If last row, it's the objective function
             row.insert(0, "z")
         else:
-            row.insert(0, f"S{n}")
-            n += 1
+            row.insert(0, basic_variables[i])
 
     # Insert the first row
     matrix_labeled.insert(0, first_row)
@@ -207,6 +207,10 @@ def determine_pivot_row(matrix: list, pivot_column_index: int) -> int:
 
     # TODO: Allow support for more than 2 decision variables
     for i in range(2): # Loop until num of decision variables (at 2 for now)
+        # Ignore 0 and negative numbers
+        if matrix[i][pivot_column_index] <= 0:
+            continue
+
         ratio_result = matrix[i][right_hand_side_index] / matrix[i][pivot_column_index]
         if ratio_result < smallest:
             smallest = ratio_result
@@ -221,7 +225,7 @@ def get_pivot(matrix: list, row_index: int, column_index: int) -> int:
 
 
 # Perform pivot elimination given the pivotal row and column
-def perform_pivot_elimination(matrix: list, pivot_row_index: int, pivot_column_index: int):
+def perform_pivot_elimination(matrix: list, pivot_row_index: int, pivot_column_index: int, basic_variables: list):
     new_matrix = copy.deepcopy(matrix)
     pivot = new_matrix[pivot_row_index][pivot_column_index]
 
@@ -246,6 +250,10 @@ def perform_pivot_elimination(matrix: list, pivot_row_index: int, pivot_column_i
                 new_matrix[row][i] = n - (pivot_row_num * row_pivot)
 
     convert_fractions_to_integer(new_matrix)
+
+    # Update the labels of the basic variables
+    entering_variable = "x" if pivot_column_index == 0 else "y" if pivot_column_index == 1 else basic_variables[pivot_row_index]
+    basic_variables[pivot_row_index] = entering_variable
     return new_matrix
 
 
@@ -262,11 +270,9 @@ def convert_fractions_to_integer(matrix: list) -> list[list[int]]:
 
 
 def main():
-    """
     # Let user input the objective function, how many constraints, and the constraints itself
     objective_function = get_objective_function()
     constraints = get_constraints()
-    """
 
     """
     # Testing, has optimal solution (bounded)
@@ -274,9 +280,11 @@ def main():
     constraints = ["2x + 2y <= 8", "5x + 3y <= 15"]
     """
 
+    """
     # Testing, has no finite optimal solution (unbounded)
     objective_function = "z = x + y"
     constraints = ["x - y <= 2", "-x + y <= 1"]
+    """
 
     # Formulate the LP model
     print("\nLP Model:")
@@ -293,10 +301,13 @@ def main():
     for i, constraint in enumerate(constraints_terms):
         print(f"Constraint {i + 1} has the terms: {constraint}")
 
+    # Initialize basic variables
+    basic_variables = [f"S{i + 1}" for i in range(len(constraints))]
+
     # Print the initial table
     print("\nInitial table:")
     matrix = initial_table(objective_function_terms, constraints_terms)
-    print_table(matrix)
+    print_table(add_labels(matrix, basic_variables))
 
     step = 1
     while objective_row_negative_exists(matrix):
@@ -310,10 +321,10 @@ def main():
             print("\nThere is no finite optimal solution. Stopping.")
             print_table(matrix)
             break
-        matrix = perform_pivot_elimination(matrix, pivot_row_index, pivot_column_index)
+        matrix = perform_pivot_elimination(matrix, pivot_row_index, pivot_column_index, basic_variables)
 
         print(f"\nStep {step}:")
-        print_table(matrix)
+        print_table(add_labels(matrix, basic_variables))
         step += 1
 
 
