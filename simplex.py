@@ -43,7 +43,7 @@ def separate_terms(equation: str) -> list[str]:
     if current_term:
         terms.append(current_term)
 
-    # Append 0 if the equation was the objetive function
+    # Append 0 if the equation was the objective function
     if is_objective_function:
         terms.append("0")
 
@@ -84,7 +84,7 @@ def get_constraints():
 
     return constraints
 
-# TODO: allow both maximize and minimize
+
 def formulate_LP_model(objective_function: str, constraints: list):
     print(f"Max {objective_function}")
     print("subject to the constraints")
@@ -154,8 +154,9 @@ def initial_table(objective_function_terms: list, constraints_terms: list) -> li
             row[0] = convert_term_to_integer(constraints_terms[i][0])
             row[1] = convert_term_to_integer(constraints_terms[i][1])
 
-            # Fill the slack variable columns
-            # TODO: Add an explanation, because I'm pretty sure I wouldn't understand this shit as well in a few months
+            # This loop iterates through the rows to add slack variables.
+            # It sets the slack variable for the current constraint to 1.
+            # The "j + 2" index is used to place the slack variable in the correct column.
             for j in range(rows):
                 if i == j:
                     row[j + 2] = 1
@@ -275,13 +276,13 @@ def main():
     constraints = get_constraints()
 
     """
-    # Testing, has optimal solution (bounded)
+    # Testing: has optimal solution (bounded)
     objective_function = "z = 120x + 100y"
     constraints = ["2x + 2y <= 8", "5x + 3y <= 15"]
     """
 
     """
-    # Testing, has no finite optimal solution (unbounded)
+    # Testing: has no finite optimal solution (unbounded)
     objective_function = "z = x + y"
     constraints = ["x - y <= 2", "-x + y <= 1"]
     """
@@ -296,16 +297,18 @@ def main():
     for constraint in constraints:
         constraints_terms.append(separate_terms(constraint))
 
-    # Print the terms for each equation/inequality
+    """
+    # Testing: Print the terms for each equation/inequality
     print(f"The objective function has the terms: {objective_function_terms}")
     for i, constraint in enumerate(constraints_terms):
         print(f"Constraint {i + 1} has the terms: {constraint}")
+    """
 
     # Initialize basic variables
     basic_variables = [f"S{i + 1}" for i in range(len(constraints))]
 
     # Print the initial table
-    print("\nInitial table:")
+    print("Initial table:")
     matrix = initial_table(objective_function_terms, constraints_terms)
     print_table(add_labels(matrix, basic_variables))
 
@@ -321,6 +324,7 @@ def main():
             print("\nThere is no finite optimal solution. Stopping.")
             print_table(matrix)
             break
+
         matrix = perform_pivot_elimination(matrix, pivot_row_index, pivot_column_index, basic_variables)
 
         print(f"\nStep {step}:")
