@@ -71,11 +71,11 @@ def convert_term_to_integer(term: str) -> int:
     return int(term)
 
 
-def get_objective_function():
+def get_objective_function() -> str:
     return input("Enter objective function: ")
 
 
-def get_constraints():
+def get_constraints() -> list:
     constraints = []
     constraints_number = int(input("Enter the number of constraints (excluding non-negativity constraints): "))
 
@@ -85,7 +85,7 @@ def get_constraints():
     return constraints
 
 
-def formulate_LP_model(objective_function: str, constraints: list):
+def formulate_LP_model(objective_function: str, constraints: list[str]) -> None:
     print(f"Max {objective_function}")
     print("subject to the constraints")
     for constraint in constraints:
@@ -93,7 +93,7 @@ def formulate_LP_model(objective_function: str, constraints: list):
     print("  x, y >= 0\n")
 
 
-def print_table(matrix_labeled):
+def print_table(matrix_labeled: list[list[int]]) -> None:
     table = PrettyTable()
 
     # Set up table
@@ -109,7 +109,7 @@ def print_table(matrix_labeled):
 
 # Add the first row identifying what column, and the first row indexes identifying what basic variable
 # For the prettytable function
-def add_labels(matrix, basic_variables) -> list:
+def add_labels(matrix: list, basic_variables: list[str]) -> list:
     matrix_labeled = copy.deepcopy(matrix)
     constraints_num = len(matrix) - 1 # Get number of constraints by getting length - 1 (z)
 
@@ -169,7 +169,7 @@ def initial_table(objective_function_terms: list, constraints_terms: list) -> li
 
 # Returns true if a negative value exists in the objective row (last row),
 # otherwise the indicated solution is already optimal and returns false
-def objective_row_negative_exists(matrix) -> bool:
+def objective_row_negative_exists(matrix: list) -> bool:
     for n in matrix[len(matrix) - 1]:
         if n < 0:
             return True
@@ -179,7 +179,7 @@ def objective_row_negative_exists(matrix) -> bool:
 
 # Returns true if a positive value exists in the pivotal column (except for the objective row),
 # otherwise there is no finite optimal solution and returns false
-def pivot_column_positive_exists(matrix, pivot_column_index) -> bool:
+def pivot_column_positive_exists(matrix: list, pivot_column_index: int) -> bool:
     for i in range(len(matrix)):
         if matrix[i][pivot_column_index] > 0:
             return True
@@ -188,7 +188,7 @@ def pivot_column_positive_exists(matrix, pivot_column_index) -> bool:
 
 
 # Finds the smallest negative number in the objective row (if a negative value exists) and returns its index
-def determine_pivot_column(matrix) -> int:
+def determine_pivot_column(matrix: list) -> int:
     smallest = matrix[len(matrix) - 1][0]
     smallest_index = 0
 
@@ -226,7 +226,7 @@ def get_pivot(matrix: list, row_index: int, column_index: int) -> int:
 
 
 # Perform pivot elimination given the pivotal row and column
-def perform_pivot_elimination(matrix: list, pivot_row_index: int, pivot_column_index: int, basic_variables: list):
+def perform_pivot_elimination(matrix: list, pivot_row_index: int, pivot_column_index: int, basic_variables: list) -> list[list[int]]:
     new_matrix = copy.deepcopy(matrix)
     pivot = new_matrix[pivot_row_index][pivot_column_index]
 
