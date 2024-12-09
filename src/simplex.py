@@ -331,5 +331,8 @@ def main():
         print_table(add_labels(matrix, basic_variables))
         step += 1
 
+    # Wait for user input before closing
+    input("Press Enter to exit...")
+
 
 main()
