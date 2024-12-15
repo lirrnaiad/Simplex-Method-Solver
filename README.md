@@ -17,8 +17,8 @@ A Python-based Simplex Method Solver for linear programming problems. This tool 
 ## Installation
 1. **Clone the Repository**:
     ```sh
-    git clone <repository_url>
-    cd <repository_directory>
+    git clone https://github.com/lirrnaiad/Simplex-Method-Solver.git
+    cd Simplex-Method-Solver
     ```
 
 2. **Create a Virtual Environment**:
@@ -44,5 +44,5 @@ A Python-based Simplex Method Solver for linear programming problems. This tool 
 ## Usage
 1. **Run the Script**:
     ```sh
-    python src/simplex.py
+    python simplex.py
     ```
