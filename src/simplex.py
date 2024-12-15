@@ -247,6 +247,11 @@ def perform_pivot_elimination(matrix: list, pivot_row_index: int, pivot_column_i
     new_matrix = copy.deepcopy(matrix)
     pivot = new_matrix[pivot_row_index][pivot_column_index]
 
+    # Check to see if pivot is a float to prevent errors with type handling
+    pivot_is_float = False
+    if isinstance(pivot, float):
+        pivot_is_float = True
+
     # List to keep track of which order of rows to do pivot elimination
     order = []
     for i in range(len(new_matrix)):
@@ -260,7 +265,10 @@ def perform_pivot_elimination(matrix: list, pivot_row_index: int, pivot_column_i
         # If it's the pivot row, multiply it by 1/k where k is the pivot
         if row == pivot_row_index:
             for i, n in enumerate(matrix[row]):
-                new_matrix[row][i] = n * (fractions.Fraction(1, pivot))
+                if pivot_is_float:
+                    new_matrix[row][i] = n * (fractions.Fraction(1, fractions.Fraction(pivot)))
+                else:
+                    new_matrix[row][i] = n * (fractions.Fraction(1, pivot))
         else:
             row_pivot = new_matrix[row][pivot_column_index]
             for i, n in enumerate(matrix[row]):
@@ -268,9 +276,12 @@ def perform_pivot_elimination(matrix: list, pivot_row_index: int, pivot_column_i
                 new_matrix[row][i] = n - (pivot_row_num * row_pivot)
 
 
-    # Convert the fractions and floats to int if they're essentially an integer for better viewing
+    # Convert the fractions and floats to int if they're essentially a whole number for better viewing
     convert_fractions_to_integer(new_matrix)
     convert_floats_to_integer(new_matrix)
+
+    # Round decimals to two digits
+    convert_floats_to_two_decimals(new_matrix)
 
     # Update the labels of the basic variables
     entering_variable = "x" if pivot_column_index == 0 else "y" if pivot_column_index == 1 else basic_variables[pivot_row_index]
@@ -290,7 +301,15 @@ def convert_fractions_to_integer(matrix: list) -> list:
     return matrix
 
 
-def convert_floats_to_integer(matrix: list) -> list:
+# Rounds decimals to two digits for better viewing
+def convert_floats_to_two_decimals(matrix: list):
+    for row in matrix:
+        for i, element in enumerate(row):
+            if isinstance(element, float):
+                row[i] = round(element, 2)
+
+
+def convert_floats_to_integer(matrix: list):
     for row in matrix:
         for i, element in enumerate(row):
             if isinstance(element, float):
@@ -299,68 +318,57 @@ def convert_floats_to_integer(matrix: list) -> list:
 
 
 def main():
-    # Let user input the objective function, how many constraints, and the constraints itself
-    objective_function = get_objective_function()
-    constraints = get_constraints()
+    print("SIMPLEX METHOD SOLVER")
+    while True:
+        # Let user input the objective function, how many constraints, and the constraints itself
+        objective_function = get_objective_function()
+        constraints = get_constraints()
 
-    """
-    # Testing: has optimal solution (bounded)
-    objective_function = "z = 120x + 100y"
-    constraints = ["2x + 2y <= 8", "5x + 3y <= 15"]
-    """
+        # Formulate the LP model
+        print("\nLP Model:")
+        formulate_LP_model(objective_function, constraints)
 
-    """
-    # Testing: has no finite optimal solution (unbounded)
-    objective_function = "z = x + y"
-    constraints = ["x - y <= 2", "-x + y <= 1"]
-    """
+        # Separate the terms in each inequality/equation
+        objective_function_terms = separate_terms(objective_function)
+        constraints_terms = []
+        for constraint in constraints:
+            constraints_terms.append(separate_terms(constraint))
 
-    # Formulate the LP model
-    print("\nLP Model:")
-    formulate_LP_model(objective_function, constraints)
+        # Initialize basic variables
+        basic_variables = [f"S{i + 1}" for i in range(len(constraints))]
 
-    # Separate the terms in each inequality/equation
-    objective_function_terms = separate_terms(objective_function)
-    constraints_terms = []
-    for constraint in constraints:
-        constraints_terms.append(separate_terms(constraint))
-
-    """
-    # Testing: Print the terms for each equation/inequality
-    print(f"The objective function has the terms: {objective_function_terms}")
-    for i, constraint in enumerate(constraints_terms):
-        print(f"Constraint {i + 1} has the terms: {constraint}")
-    """
-
-    # Initialize basic variables
-    basic_variables = [f"S{i + 1}" for i in range(len(constraints))]
-
-    # Print the initial table
-    print("Initial table:")
-    matrix = initial_table(objective_function_terms, constraints_terms)
-    print_table(add_labels(matrix, basic_variables))
-
-    step = 1
-    while objective_row_negative_exists(matrix):
-        # Stop when there are no more negative numbers on the objective function (x and y)
-        pivot_column_index = determine_pivot_column(matrix)
-
-        # Stop when there are no more positive numbers on the pivot column (there is no finite solution)
-        if pivot_column_positive_exists(matrix, pivot_column_index):
-            pivot_row_index = determine_pivot_row(matrix, pivot_column_index)
-        else:
-            print("\nThere is no finite optimal solution. Stopping.")
-            print_table(matrix)
-            break
-
-        matrix = perform_pivot_elimination(matrix, pivot_row_index, pivot_column_index, basic_variables)
-
-        print(f"\nStep {step}:")
+        # Print the initial table
+        print("Initial table:")
+        matrix = initial_table(objective_function_terms, constraints_terms)
         print_table(add_labels(matrix, basic_variables))
-        step += 1
 
-    # Wait for user input before closing
-    input("Press Enter to exit...")
+        step = 1
+        while objective_row_negative_exists(matrix):
+            # Stop when there are no more negative numbers on the objective function (x and y)
+            pivot_column_index = determine_pivot_column(matrix)
+
+            # Stop when there are no more positive numbers on the pivot column (there is no finite solution)
+            if pivot_column_positive_exists(matrix, pivot_column_index):
+                pivot_row_index = determine_pivot_row(matrix, pivot_column_index)
+            else:
+                print("\nThere is no finite optimal solution. Stopping.")
+                print_table(matrix)
+                break
+
+            matrix = perform_pivot_elimination(matrix, pivot_row_index, pivot_column_index, basic_variables)
+
+            print(f"\nStep {step}:")
+            print_table(add_labels(matrix, basic_variables))
+            step += 1
+
+        # Ask if user wants to input a new problem
+        choice = input("\nWould you like to continue? (y/n): ").lower()
+        if choice == "y":
+            print("Continuing!\n\n")
+        elif choice == "n":
+            break
+        else:
+            print("Invalid choice. Continuing anyway!\n\n")
 
 
 main()
