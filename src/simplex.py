@@ -50,25 +50,42 @@ def separate_terms(equation: str) -> list[str]:
     return terms
 
 
-def convert_term_to_integer(term: str) -> int:
+def convert_term(term: str):
     # For positive x and y (1)
-    if "x" in term:
-        term = term.replace("x", "")
-    elif "y" in term:
-        term = term.replace("y", "")
+    if "x" in term or "y" in term:
+        term = term.replace("x", "").replace("y", "")
 
     # For negative x and y (-1)
-    if "-x" in term:
-        term = term.replace("-x", "-")
-    elif "-y" in term:
-        term = term.replace("-y", "-")
+    if "-x" in term or "-y" in term:
+        term = term.replace("-x", "-").replace("-y", "-")
 
+    # Convert to 1 or -1 if the term was simply x or -x
     if term == "":
         term = "1"
     elif term == "-":
         term = "-1"
 
-    return int(term)
+    if "." in term:     # Convert to float if there is a decimal point
+        return float(term)
+    elif "/" in term:
+        # If the term is a fraction use the helper function convert_term_to_fraction()
+        term = convert_term_to_fraction(term)
+        return term
+    else:
+        return int(term)
+
+
+# If the term is a fraction, this function will be used
+def convert_term_to_fraction(term: str) -> fractions.Fraction:
+    # Remove x or y first
+    if "x" in term or "y" in term:
+        term = term.replace("x", "").replace("y", "")
+
+    numerator, denominator = term.split("/")
+
+    numerator = int(numerator)
+    denominator = int(denominator)
+    return fractions.Fraction(numerator, denominator)
 
 
 def get_objective_function() -> str:
@@ -143,16 +160,16 @@ def initial_table(objective_function_terms: list, constraints_terms: list) -> li
         # If last row, it's the objective function's row
         if i == len(matrix) - 1:
             # Fill x and y columns (they'll be the opposite sign)
-            row[0] = -convert_term_to_integer(objective_function_terms[0])
-            row[1] = -convert_term_to_integer(objective_function_terms[1])
+            row[0] = -convert_term(objective_function_terms[0])
+            row[1] = -convert_term(objective_function_terms[1])
 
             # Fill RHS column
-            row[columns - 1] = convert_term_to_integer(objective_function_terms[2])
+            row[columns - 1] = convert_term(objective_function_terms[2])
 
         else:
             # Fill x and y columns
-            row[0] = convert_term_to_integer(constraints_terms[i][0])
-            row[1] = convert_term_to_integer(constraints_terms[i][1])
+            row[0] = convert_term(constraints_terms[i][0])
+            row[1] = convert_term(constraints_terms[i][1])
 
             # This loop iterates through the rows to add slack variables.
             # It sets the slack variable for the current constraint to 1.
@@ -163,7 +180,7 @@ def initial_table(objective_function_terms: list, constraints_terms: list) -> li
                     break
 
             # Fill RHS column
-            row[columns - 1] = convert_term_to_integer(constraints_terms[i][2])
+            row[columns - 1] = convert_term(constraints_terms[i][2])
 
     return matrix
 
@@ -250,7 +267,10 @@ def perform_pivot_elimination(matrix: list, pivot_row_index: int, pivot_column_i
                 pivot_row_num = new_matrix[pivot_row_index][i]
                 new_matrix[row][i] = n - (pivot_row_num * row_pivot)
 
+
+    # Convert the fractions and floats to int if they're essentially an integer for better viewing
     convert_fractions_to_integer(new_matrix)
+    convert_floats_to_integer(new_matrix)
 
     # Update the labels of the basic variables
     entering_variable = "x" if pivot_column_index == 0 else "y" if pivot_column_index == 1 else basic_variables[pivot_row_index]
@@ -260,7 +280,7 @@ def perform_pivot_elimination(matrix: list, pivot_row_index: int, pivot_column_i
 
 # Converts fractions to integers if the resulting integer is a whole number (denominator is 1),
 # otherwise keep it a fraction
-def convert_fractions_to_integer(matrix: list) -> list[list[int]]:
+def convert_fractions_to_integer(matrix: list) -> list:
     for row in matrix:
         for i, element in enumerate(row):
             if isinstance(element, fractions.Fraction):
@@ -268,6 +288,14 @@ def convert_fractions_to_integer(matrix: list) -> list[list[int]]:
                     row[i] = int(element)
 
     return matrix
+
+
+def convert_floats_to_integer(matrix: list) -> list:
+    for row in matrix:
+        for i, element in enumerate(row):
+            if isinstance(element, float):
+                if element.is_integer():
+                    row[i] = int(element)
 
 
 def main():
