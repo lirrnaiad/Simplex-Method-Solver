@@ -11,7 +11,7 @@ A Python-based Simplex Method Solver for linear programming problems. This tool 
 - Handle fractions and floating-point numbers
 
 ## Requirements
-- Python 3.x
+- Python 3.x (Install it [here](https://www.python.org/downloads/))
 - `prettytable` library
 
 ## Installation
