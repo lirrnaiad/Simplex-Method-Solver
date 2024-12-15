@@ -52,26 +52,40 @@ def separate_terms(equation: str) -> list[str]:
 
 def convert_term(term: str):
     # For positive x and y (1)
-    if "x" in term:
-        term = term.replace("x", "")
-    elif "y" in term:
-        term = term.replace("y", "")
+    if "x" in term or "y" in term:
+        term = term.replace("x", "").replace("y", "")
 
     # For negative x and y (-1)
-    if "-x" in term:
-        term = term.replace("-x", "-")
-    elif "-y" in term:
-        term = term.replace("-y", "-")
+    if "-x" in term or "-y" in term:
+        term = term.replace("-x", "-").replace("-y", "-")
 
+    # Convert to 1 or -1 if the term was simply x or -x
     if term == "":
         term = "1"
     elif term == "-":
         term = "-1"
 
-    if "." in term:
+    if "." in term:     # Convert to float if there is a decimal point
         return float(term)
+    elif "/" in term:
+        # If the term is a fraction use the helper function convert_term_to_fraction()
+        term = convert_term_to_fraction(term)
+        return term
     else:
         return int(term)
+
+
+# If the term is a fraction, this function will be used
+def convert_term_to_fraction(term: str) -> fractions.Fraction:
+    # Remove x or y first
+    if "x" in term or "y" in term:
+        term = term.replace("x", "").replace("y", "")
+
+    numerator, denominator = term.split("/")
+
+    numerator = int(numerator)
+    denominator = int(denominator)
+    return fractions.Fraction(numerator, denominator)
 
 
 def get_objective_function() -> str:
