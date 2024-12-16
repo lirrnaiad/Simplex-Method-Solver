@@ -12,7 +12,9 @@ A Python-based Simplex Method Solver for linear programming problems. This tool 
 
 ## Requirements
 - Python 3.x (Download it [here](https://www.python.org/downloads/))
-- `prettytable` library
+    - Downloading Python is required to run this program since it is written in Python
+- git (Download it [here](https://git-scm.com/downloads))
+    - git is required to be able to install this project seamlessly into your computer
 
 ## Installation
 1. **Clone the Repository**:
