@@ -76,13 +76,13 @@ A Python-based Simplex Method Solver for linear programming problems. This tool 
 6. **View the Initial Simplex Table**:
     ```
     Initial table:
-    +-----+-----+-----+-----+-----+
+    +-----+-----+-----+-----+-----+-----+
     | B.V |  x  |  y  | S1  | S2  | RHS |
-    +-----+-----+-----+-----+-----+
+    +-----+-----+-----+-----+-----+-----+
     |  S1 |  2  |  2  |  1  |  0  |  8  |
     |  S2 |  5  |  3  |  0  |  1  | 15  |
     |  z  | -120| -100|  0  |  0  |  0  |
-    +-----+-----+-----+-----+-----+
+    +-----+-----+-----+-----+-----+-----+
     ```
 
 7. **Follow the Simplex Method Iterations**:
