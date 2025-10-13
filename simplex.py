@@ -325,8 +325,13 @@ def main():
 
         # Print the initial table
         print("Initial table:")
-        matrix = initial_table(objective_function_terms, constraints_terms)
-        print_table(add_labels(matrix, basic_variables))
+        try:
+            matrix = initial_table(objective_function_terms, constraints_terms)
+            print_table(add_labels(matrix, basic_variables))
+        except (IndexError, ValueError):
+            print("There was an error processing your input. Please ensure the format is correct.")
+            print("Resetting...\n")
+            continue
 
         step = 1
         while objective_row_negative_exists(matrix):
